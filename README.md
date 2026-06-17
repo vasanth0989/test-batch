@@ -155,17 +155,15 @@ Manual review output is pipe-separated:
 CIF1000003|32345678901234567890|FIS-CIF1000003-01|UNKNOWN_STATE|Manual review required
 ```
 
-## Mock BillPay Behavior
+## Sample BillPay Behavior
 
-The mock services are deterministic:
+The local sample behavior is deterministic:
 
 - CIF ending in `1` returns two funding accounts.
 - CIF ending in `2` returns one funding account.
 - CIF ending in `8` simulates an API timeout.
 - CIF ending in `9` simulates a missing enrollment.
 - Other CIFs return one default DDA funding account.
-
-Replace the mock implementations in `service/mock` with real BillPay API integrations later.
 
 Recon processing resolves each fallout type through `migration.fallout-rules`, then performs the configured action:
 
