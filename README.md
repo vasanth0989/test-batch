@@ -119,8 +119,9 @@ Recon input is pipe-separated:
 
 ```text
 CIF1000001|12345678901234567890|FIS-CIF1000001-01|ACCOUNT_CLOSED
-CIF1000002|22345678901234567890|FIS-CIF1000002-01|FUNDING_ACCOUNT_MISSING
+CIF1000002|22345678901234567890|FIS-CIF1000002-01|ACCOUNT_NOT_FOUND
 CIF1000003|32345678901234567890|FIS-CIF1000003-01|UNKNOWN_STATE
+CIF1000004|42345678901234567890|FIS-CIF1000004-01|CIF_NOT_FOUND
 ```
 
 Finacle must also provide a control summary file:
@@ -142,9 +143,10 @@ If validation fails, `reconProcessingJob` fails and no fallout actions are execu
 Recon processing report output is pipe-separated:
 
 ```text
-CIF1000001|12345678901234567890|FIS-CIF1000001-01|ACCOUNT_CLOSED|UNENROLL_CONSUMER|SUCCESS|Consumer unenrolled successfully
-CIF1000002|22345678901234567890|FIS-CIF1000002-01|FUNDING_ACCOUNT_MISSING|CLOSE_FUNDING_ACCOUNT|SUCCESS|Funding account closed successfully
+CIF1000001|12345678901234567890|FIS-CIF1000001-01|ACCOUNT_CLOSED|CLOSE_FUNDING_ACCOUNT|SUCCESS|Funding account closed successfully
+CIF1000002|22345678901234567890|FIS-CIF1000002-01|ACCOUNT_NOT_FOUND|MANUAL_REVIEW|MANUAL_REVIEW|Manual review required
 CIF1000003|32345678901234567890|FIS-CIF1000003-01|UNKNOWN_STATE|MANUAL_REVIEW|MANUAL_REVIEW|Manual review required
+CIF1000004|42345678901234567890|FIS-CIF1000004-01|CIF_NOT_FOUND|UNENROLL_CONSUMER|SUCCESS|Consumer unenrolled successfully
 ```
 
 Manual review output is pipe-separated:
@@ -165,7 +167,16 @@ The mock services are deterministic:
 
 Replace the mock implementations in `service/mock` with real BillPay API integrations later.
 
-Recon actions are also mocked in `MockReconActionExecutor`.
+Recon processing resolves each fallout type through `migration.fallout-rules`, then performs the configured action:
+
+```text
+ACCOUNT_NOT_FOUND -> MANUAL_REVIEW -> no automated action
+ACCOUNT_CLOSED -> CLOSE_FUNDING_ACCOUNT -> close funding account
+CIF_NOT_FOUND -> UNENROLL_CONSUMER -> unenroll consumer
+UNKNOWN_STATE -> MANUAL_REVIEW -> no automated action
+```
+
+`DELETE_CONSUMER` and `SKIP` are supported actions for future mappings.
 
 ## Configuration
 
