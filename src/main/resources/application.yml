@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: billpay-migration-batch
+  datasource:
+    url: jdbc:h2:mem:billpay_migration_batch;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: true
+
+migration:
+  chunk-size: 100
+  concurrency: 25
+  retry-limit: 3
+  skip-limit: 1000
+  archive-input-files: true
+  fallout-rules:
+    ACCOUNT_NOT_FOUND: MANUAL_REVIEW
+    ACCOUNT_CLOSED: UNENROLL_CONSUMER
+    FUNDING_ACCOUNT_MISSING: CLOSE_FUNDING_ACCOUNT
+    CONSUMER_NOT_FOUND: MANUAL_REVIEW
+    ENROLLMENT_MISMATCH: UNENROLL_CONSUMER
+    UNKNOWN_STATE: MANUAL_REVIEW
+
+logging:
+  file:
+    name: logs/billpay-migration-batch.log
+  level:
+    root: INFO
+    com.discover.billpay.migration.batch: INFO

@@ -1,0 +1,11 @@
+.gradle/
+.gradle-tmp/
+build/
+
+logs/
+output/
+error/
+archive/
+data/
+
+*.log
