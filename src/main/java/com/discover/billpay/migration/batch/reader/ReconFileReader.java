@@ -31,6 +31,7 @@ public class ReconFileReader implements ItemStreamReader<ReconRecord>, StepExecu
                     return ReconRecord.builder()
                             .cif(fields.cif())
                             .accountNumber(fields.accountNumber())
+                            .fisAccountId(fields.fisAccountId())
                             .falloutType(fields.falloutType())
                             .rawLine(line)
                             .build();
@@ -40,7 +41,11 @@ public class ReconFileReader implements ItemStreamReader<ReconRecord>, StepExecu
 
     @Override
     public synchronized ReconRecord read() throws Exception {
-        return delegate.read();
+        ReconRecord record;
+        do {
+            record = delegate.read();
+        } while (record != null && !record.rawLineHasText());
+        return record;
     }
 
     @Override
@@ -64,16 +69,25 @@ public class ReconFileReader implements ItemStreamReader<ReconRecord>, StepExecu
     }
 
     private ReconFields parse(String line) {
+        if (line == null || line.isBlank()) {
+            return ReconFields.empty();
+        }
+
         var fields = Optional.ofNullable(line)
                 .map(value -> value.split("\\|", -1))
                 .orElseGet(() -> new String[0]);
-        if (fields.length != 3) {
-            throw new RecordValidationException("Recon record must contain exactly 3 pipe-separated fields");
+        if (fields.length != 4) {
+            throw new RecordValidationException(
+                    "Recon record must contain exactly 4 pipe-separated fields in layout "
+                            + "CIF|AccountNumber|FisAccountId|FalloutType, but found "
+                            + fields.length
+                            + " field(s)");
         }
         return new ReconFields(
                 trim(field(fields, 0)),
                 trim(field(fields, 1)),
-                trim(field(fields, 2)));
+                trim(field(fields, 2)),
+                trim(field(fields, 3)));
     }
 
     private String field(String[] fields, int index) {
@@ -86,6 +100,10 @@ public class ReconFileReader implements ItemStreamReader<ReconRecord>, StepExecu
                 .orElse("");
     }
 
-    private record ReconFields(String cif, String accountNumber, String falloutType) {
+    private record ReconFields(String cif, String accountNumber, String fisAccountId, String falloutType) {
+
+        static ReconFields empty() {
+            return new ReconFields("", "", "", "");
+        }
     }
 }
