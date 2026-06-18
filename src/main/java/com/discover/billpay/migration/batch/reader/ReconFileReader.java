@@ -13,6 +13,7 @@ import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;
 import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component("reconReader")
 public class ReconFileReader implements ItemStreamReader<ReconRecord>, StepExecutionListener {
@@ -44,7 +45,7 @@ public class ReconFileReader implements ItemStreamReader<ReconRecord>, StepExecu
         ReconRecord record;
         do {
             record = delegate.read();
-        } while (record != null && !record.rawLineHasText());
+        } while (record != null && !StringUtils.hasText(record.getRawLine()));
         return record;
     }
 
